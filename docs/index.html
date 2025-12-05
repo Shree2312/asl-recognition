@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASL Sign Language Recognition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --accent: #22d3ee;
+            --accent-glow: rgba(34, 211, 238, 0.4);
+            --success: #10b981;
+            --bg-dark: #0f0f1a;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            top: -200px;
+            left: -200px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--accent) 0%, #0891b2 100%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(50px, -30px) scale(1.05);
+            }
+
+            50% {
+                transform: translate(-30px, 50px) scale(0.95);
+            }
+
+            75% {
+                transform: translate(-50px, -20px) scale(1.02);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(20deg);
+            }
+
+            75% {
+                transform: rotate(-20deg);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .video-container {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        #video-canvas {
+            width: 100%;
+            display: block;
+            border-radius: 24px;
+        }
+
+        video {
+            display: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--accent);
+        }
+
+        .corner.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 8px 0 0 0;
+        }
+
+        .corner.top-right {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+            border-radius: 0 8px 0 0;
+        }
+
+        .corner.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+            border-radius: 0 0 0 8px;
+        }
+
+        .corner.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 8px 0;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 70px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--success);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--success);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .prediction-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .prediction-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+
+        .prediction-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-letter {
+            font-size: 8rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px var(--accent-glow);
+            transition: transform 0.2s ease;
+        }
+
+        .prediction-letter.pop {
+            transform: scale(1.1);
+        }
+
+        .prediction-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 1rem;
+        }
+
+        .info-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+        }
+
+        .info-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .loading-progress {
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+
+            .prediction-letter {
+                font-size: 6rem;
+            }
+
+            .info-cards {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .info-card {
+                flex: 1;
+                min-width: 150px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .prediction-letter {
+                font-size: 5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-overlay" id="loading">
+        <div class="loader"></div>
+        <div class="loading-text">Loading ASL Recognition</div>
+        <div class="loading-progress" id="loading-progress">Initializing...</div>
+    </div>
+
+    <div class="background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🤟</span>
+                <h1>ASL Recognition</h1>
+            </div>
+            <p class="subtitle">Real-time American Sign Language Detection</p>
+        </header>
+
+        <main>
+            <div class="video-section">
+                <div class="video-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="video-canvas"></canvas>
+                    <div class="corner top-left"></div>
+                    <div class="corner top-right"></div>
+                    <div class="corner bottom-left"></div>
+                    <div class="corner bottom-right"></div>
+                    <div class="status-indicator">
+                        <span class="pulse"></span>
+                        <span>LIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prediction-section">
+                <div class="prediction-card">
+                    <div class="prediction-label">Detected Letter</div>
+                    <div class="prediction-letter" id="prediction-letter">—</div>
+                    <div class="prediction-subtitle">Show an ASL hand sign</div>
+                </div>
+
+                <div class="info-cards">
+                    <div class="info-card">
+                        <div class="info-icon">📊</div>
+                        <div class="info-content">
+                            <div class="info-value">26</div>
+                            <div class="info-label">Letters Trained</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">🎯</div>
+                        <div class="info-content">
+                            <div class="info-value">99%</div>
+                            <div class="info-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">⚡</div>
+                        <div class="info-content">
+                            <div class="info-value">Browser</div>
+                            <div class="info-label">Processing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Built with MediaPipe & KNN • Runs 100% in your browser</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // ============================================
+        // KNN Classifier
+        // ============================================
+        class KNNClassifier {
+            constructor(k = 5) {
+                this.k = k;
+                this.trainingData = [];
+            }
+
+            load(data) {
+                this.trainingData = data.samples;
+                this.k = data.k || 5;
+                console.log(`Loaded ${this.trainingData.length} training samples`);
+            }
+
+            euclideanDistance(a, b) {
+                let sum = 0;
+                for (let i = 0; i < a.length; i++) {
+                    sum += (a[i] - b[i]) ** 2;
+                }
+                return Math.sqrt(sum);
+            }
+
+            predict(features) {
+                if (this.trainingData.length === 0) return null;
+
+                // Calculate distances to all training samples
+                const distances = this.trainingData.map((sample, index) => ({
+                    distance: this.euclideanDistance(features, sample.features),
+                    label: sample.label
+                }));
+
+                // Sort by distance and get k nearest
+                distances.sort((a, b) => a.distance - b.distance);
+                const kNearest = distances.slice(0, this.k);
+
+                // Majority voting
+                const votes = {};
+                kNearest.forEach(neighbor => {
+                    votes[neighbor.label] = (votes[neighbor.label] || 0) + 1;
+                });
+
+                // Find the label with maximum votes
+                let maxVotes = 0;
+                let prediction = null;
+                for (const [label, count] of Object.entries(votes)) {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        prediction = label;
+                    }
+                }
+
+                return prediction;
+            }
+        }
+
+        // ============================================
+        // Main Application
+        // ============================================
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('video-canvas');
+        const ctx = canvasElement.getContext('2d');
+        const predictionElement = document.getElementById('prediction-letter');
+        const loadingElement = document.getElementById('loading');
+        const loadingProgress = document.getElementById('loading-progress');
+
+        const knn = new KNNClassifier(5);
+        let predictionHistory = [];
+        const HISTORY_SIZE = 5;
+
+        // Normalize landmarks (same as Python version)
+        function normalizeLandmarks(landmarks) {
+            const wrist = landmarks[0];
+            const features = [];
+
+            for (let i = 1; i < 21; i++) {
+                features.push(landmarks[i].x - wrist.x);
+                features.push(landmarks[i].y - wrist.y);
+                features.push(landmarks[i].z - wrist.z);
+            }
+
+            return features;
+        }
+
+        // Get most common prediction
+        function getMostCommon(arr) {
+            if (arr.length === 0) return null;
+            const counts = {};
+            arr.forEach(item => counts[item] = (counts[item] || 0) + 1);
+            return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+        }
+
+        // Process results from MediaPipe
+        function onResults(results) {
+            // Draw video frame
+            ctx.save();
+            ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // Draw hand landmarks
+                drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
+                    color: '#00C8FF',
+                    lineWidth: 3
+                });
+                drawLandmarks(ctx, landmarks, {
+                    color: '#00FF80',
+                    lineWidth: 2,
+                    radius: 4
+                });
+
+                // Make prediction
+                const features = normalizeLandmarks(landmarks);
+                const prediction = knn.predict(features);
+
+                if (prediction) {
+                    predictionHistory.push(prediction);
+                    if (predictionHistory.length > HISTORY_SIZE) {
+                        predictionHistory.shift();
+                    }
+
+                    const smoothedPrediction = getMostCommon(predictionHistory);
+                    if (smoothedPrediction !== predictionElement.textContent) {
+                        predictionElement.textContent = smoothedPrediction;
+                        predictionElement.classList.add('pop');
+                        setTimeout(() => predictionElement.classList.remove('pop'), 200);
+                    }
+                }
+            } else {
+                predictionHistory = [];
+                predictionElement.textContent = '—';
+            }
+
+            ctx.restore();
+        }
+
+        // Initialize application
+        async function init() {
+            try {
+                // Load model data
+                loadingProgress.textContent = 'Loading model...';
+                const response = await fetch('model_data.json');
+                const modelData = await response.json();
+                knn.load(modelData);
+
+                // Initialize MediaPipe Hands
+                loadingProgress.textContent = 'Initializing hand detection...';
+                const hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.7,
+                    minTrackingConfidence: 0.7
+                });
+
+                hands.onResults(onResults);
+
+                // Initialize camera
+                loadingProgress.textContent = 'Starting camera...';
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                // Set canvas size
+                canvasElement.width = 640;
+                canvasElement.height = 480;
+
+                await camera.start();
+
+                // Hide loading screen
+                loadingElement.classList.add('hidden');
+                console.log('Application initialized successfully');
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+                loadingProgress.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+
+</html>

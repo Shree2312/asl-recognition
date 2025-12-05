@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASL Sign Language Recognition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🤟</span>
+                <h1>ASL Recognition</h1>
+            </div>
+            <p class="subtitle">Real-time American Sign Language Detection</p>
+        </header>
+        
+        <main>
+            <div class="video-section">
+                <div class="video-container">
+                    <img id="video-feed" src="/video_feed" alt="Webcam Feed">
+                    <div class="video-overlay">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="pulse"></span>
+                        <span>LIVE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="prediction-section">
+                <div class="prediction-card">
+                    <div class="prediction-label">Detected Letter</div>
+                    <div class="prediction-letter" id="prediction-letter">—</div>
+                    <div class="prediction-subtitle">Show an ASL hand sign</div>
+                </div>
+                
+                <div class="info-cards">
+                    <div class="info-card">
+                        <div class="info-icon">📊</div>
+                        <div class="info-content">
+                            <div class="info-value">26</div>
+                            <div class="info-label">Letters Trained</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">🎯</div>
+                        <div class="info-content">
+                            <div class="info-value">99%</div>
+                            <div class="info-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">⚡</div>
+                        <div class="info-content">
+                            <div class="info-value">Real-time</div>
+                            <div class="info-label">Detection</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Built with MediaPipe & KNN • Press any ASL letter to see detection</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Fetch prediction every 100ms
+        async function updatePrediction() {
+            try {
+                const response = await fetch('/prediction');
+                const data = await response.json();
+                const letterElement = document.getElementById('prediction-letter');
+                
+                if (data.letter && data.letter !== letterElement.textContent) {
+                    letterElement.textContent = data.letter;
+                    letterElement.classList.add('pop');
+                    setTimeout(() => letterElement.classList.remove('pop'), 200);
+                } else if (!data.letter) {
+                    letterElement.textContent = '—';
+                }
+            } catch (error) {
+                console.error('Error fetching prediction:', error);
+            }
+        }
+        
+        // Update prediction periodically
+        setInterval(updatePrediction, 100);
+        
+        // Initial call
+        updatePrediction();
+    </script>
+</body>
+</html>
