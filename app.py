@@ -92,7 +92,16 @@ def generate_frames():
     """Generate video frames with predictions."""
     global current_prediction, prediction_history
     
-    cap = cv2.VideoCapture(0)
+    # Use DirectShow backend on Windows for better compatibility
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    
+    if not cap.isOpened():
+        print("✗ ERROR: Could not open webcam with index 0!")
+        print("  - Make sure no other app is using the camera")
+        print("  - Try changing camera index to 1")
+        return
+    
+    print("✓ Webcam opened successfully!")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     

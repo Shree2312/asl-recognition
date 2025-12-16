@@ -254,8 +254,8 @@ def main():
             # Handle keyboard input
             key = cv2.waitKey(1) & 0xFF
             
-            # Check for quit key (ESC only - so 'Q' can be used for the letter Q)
-            if key == 27:  # 27 = ESC
+            # Check for quit keys
+            if key == ord('q') or key == ord('Q') or key == 27:  # 27 = ESC
                 print("\n✓ Exiting data collection...")
                 break
             
