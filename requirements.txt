@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Requirements for ASL Sign Language Recognition System
 # Install with: pip install -r requirements.txt
 
@@ -15,3 +16,22 @@ numpy>=1.20.0
 
 # Model Serialization
 joblib>=1.0.0
+=======
+# Requirements for ASL Sign Language Recognition System
+# Install with: pip install -r requirements.txt
+
+# Computer Vision
+opencv-python>=4.5.0
+
+# Hand Landmark Detection
+mediapipe>=0.9.0
+
+# Machine Learning
+scikit-learn>=1.0.0
+
+# Numerical Computing
+numpy>=1.20.0
+
+# Model Serialization
+joblib>=1.0.0
+>>>>>>> d59999f20decd792b84a151d542d94ae9043ae56

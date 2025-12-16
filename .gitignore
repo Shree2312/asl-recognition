@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Virtual environment
 .signlang_env/
 venv/
@@ -13,3 +14,20 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+=======
+# Virtual environment
+.signlang_env/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+>>>>>>> d59999f20decd792b84a151d542d94ae9043ae56
